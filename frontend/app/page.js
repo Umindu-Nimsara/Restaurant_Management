@@ -1,5 +1,5 @@
 import React from 'react'
-import AdminHomePage from "./modules/admin/page";
+import AdminHomePage from "./(app)/modules/admin/page";
 
 function page() {
   return (
