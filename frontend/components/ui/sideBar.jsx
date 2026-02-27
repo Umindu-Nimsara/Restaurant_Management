@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { ChevronRight, ChevronLeft, ChevronDown } from "lucide-react";
 
 import BreadcrumbNav from "@/components/ui/breadcrumb"; //default import now works
-import { icons } from "@/components/ui/icon";
+import { sideBarIcon } from "@/components/ui/icon";
 
 export default function SideMenu({ isOpen, setIsOpen, isMobileRoute = false }) {
     const router = useRouter();
@@ -20,32 +20,32 @@ export default function SideMenu({ isOpen, setIsOpen, isMobileRoute = false }) {
             {
                 name: "Home",
                 route: "/",
-                icon: icons.Home,
+                icon: sideBarIcon.Home,
             },
             {
                 name: "Menu Management",
                 route: "/modules/admin/menu-management/",
-                icon: icons.HandPlatter,
+                icon: sideBarIcon.HandPlatter,
             },
             {
                 name: "Inventory Management",
                 route: "/modules/admin/inventory-management/",
-                icon: icons.ShoppingCart,
+                icon: sideBarIcon.ShoppingCart,
             },
             {
                 name: "Order Management",
                 route: "/modules/admin/order-management/",
-                icon: icons.BadgeDollarSign,
+                icon: sideBarIcon.BadgeDollarSign,
             },
             {
                 name: "Table Management",
                 route: "/modules/admin/table-management/",
-                icon: icons.StoreIcon,
+                icon: sideBarIcon.StoreIcon,
             },
             {
                 name: "User Management",
                 route: "/modules/admin/user-management/",
-                icon: icons.UserPen,
+                icon: sideBarIcon.UserPen,
             },
         ];
     }, []);
