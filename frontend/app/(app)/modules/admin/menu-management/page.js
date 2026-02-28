@@ -64,8 +64,7 @@ function MenuManagementPage() {
     };
 
     const handleEdit = (id) => {
-        // If later you build edit page, route there
-        alert(`Edit item: ${id} (create edit page if you want)`);
+        router.push(`/modules/admin/menu-management/add-menu-item?id=${id}`);
     };
 
     return (

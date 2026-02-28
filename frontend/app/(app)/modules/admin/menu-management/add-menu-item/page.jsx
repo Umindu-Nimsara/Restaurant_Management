@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ImagePlus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,8 @@ const CATEGORY_OPTIONS = [
 
 export default function AddMenuItemPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const id = searchParams.get("id");
     const fileRef = useRef(null);
 
     const [imageDataUrl, setImageDataUrl] = useState(""); // base64 (for preview + storage)
@@ -45,6 +47,31 @@ export default function AddMenuItemPage() {
     useEffect(() => {
         if (typeof window === "undefined") return;
 
+        // If in edit mode, load the specific item
+        if (id) {
+            try {
+                const listRaw = localStorage.getItem("oceanbreeze_menu_items_v1");
+                const list = listRaw ? JSON.parse(listRaw) : [];
+                const item = list.find((it) => String(it.id) === id);
+                if (item) {
+                    setForm({
+                        menuName: item.menuName || "",
+                        availability: item.availability || "",
+                        price: item.price || "",
+                        potionSize: item.potionSize || "",
+                        category: item.category || "",
+                        featured: item.featured || "",
+                        description: item.description || "",
+                    });
+                    setImageDataUrl(item.image || "");
+                }
+            } catch (e) {
+                console.error("Error loading item for edit:", e);
+            }
+            return;
+        }
+
+        // If not in edit mode, load draft
         try {
             const raw = localStorage.getItem(STORAGE_KEY);
             if (!raw) return;
@@ -55,13 +82,13 @@ export default function AddMenuItemPage() {
         } catch (e) {
             // ignore corrupted data
         }
-    }, []);
+    }, [id]);
 
     // -------------------------
     // Auto-save to localStorage
     // -------------------------
     useEffect(() => {
-        if (typeof window === "undefined") return;
+        if (typeof window === "undefined" || id) return; // Skip auto-save if in edit mode
 
         const payload = {
             form,
@@ -70,7 +97,7 @@ export default function AddMenuItemPage() {
         };
 
         localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-    }, [form, imageDataUrl]);
+    }, [form, imageDataUrl, id]);
 
     const isValid = useMemo(() => {
         return (
@@ -119,28 +146,44 @@ export default function AddMenuItemPage() {
             return;
         }
 
-        // 1️⃣ Save data (already auto-saved OR you can push to array here)
+        const existingRaw = localStorage.getItem("oceanbreeze_menu_items_v1");
+        let existing = existingRaw ? JSON.parse(existingRaw) : [];
 
-        // OPTIONAL: If you are saving as list
-        const existing =
-            JSON.parse(localStorage.getItem("oceanbreeze_menu_items_v1")) || [];
-
-        const newItem = {
-            id: Date.now(),
-            ...form,
-            image: imageDataUrl,
-            createdAt: new Date().toISOString(),
-        };
+        if (id) {
+            // Update existing item
+            existing = existing.map((it) => {
+                if (String(it.id) === id) {
+                    return {
+                        ...it,
+                        ...form,
+                        image: imageDataUrl,
+                        updatedAt: new Date().toISOString(),
+                    };
+                }
+                return it;
+            });
+        } else {
+            // Add new item
+            const newItem = {
+                id: Date.now(),
+                ...form,
+                image: imageDataUrl,
+                createdAt: new Date().toISOString(),
+            };
+            existing.push(newItem);
+        }
 
         localStorage.setItem(
             "oceanbreeze_menu_items_v1",
-            JSON.stringify([...existing, newItem])
+            JSON.stringify(existing)
         );
 
-        // 2️⃣ Clear draft (optional)
-        localStorage.removeItem(STORAGE_KEY);
+        // Clear draft if not in edit mode
+        if (!id) {
+            localStorage.removeItem(STORAGE_KEY);
+        }
 
-        // 3️⃣ Navigate back to Menu Management page
+        // Navigate back
         router.push("/modules/admin/menu-management");
     };
 
@@ -164,7 +207,9 @@ export default function AddMenuItemPage() {
         <div className="flex-1 p-6 pt-20">
             {/* Title */}
             <div className="mb-6">
-                <h1 className="text-2xl font-semibold text-gray-900">Add New Menu Item</h1>
+                <h1 className="text-2xl font-semibold text-gray-900">
+                    {id ? "Edit Menu Item" : "Add New Menu Item"}
+                </h1>
             </div>
 
             {/* Image Upload */}
@@ -340,7 +385,7 @@ export default function AddMenuItemPage() {
                     className="bg-[#005477] hover:bg-[#005477]/90 text-white px-10"
                     disabled={!isValid}
                 >
-                    Save
+                    {id ? "Update" : "Save"}
                 </Button>
             </div>
 
